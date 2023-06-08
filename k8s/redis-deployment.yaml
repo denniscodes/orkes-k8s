@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis  # Sets Deployment name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis # Sets Image
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 6379  # Exposes container port
+          envFrom:
+            - configMapRef:
+                name: redis-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: redis
+      volumes:
+        - name: redis
+          persistentVolumeClaim:
+            claimName: redis-pv-claim
+

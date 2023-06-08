@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  labels:
+    app: redis
+data:
+  redis-config: |
+    maxmemory 4mb
+    maxmemory-policy allkeys-lru
+    append-only yes
