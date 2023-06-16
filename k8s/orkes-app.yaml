@@ -1,0 +1,105 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-orkes-conductor-community-ui
+  labels:
+    app.kubernetes.io/name: orkes-conductor-community
+    app.kubernetes.io/instance: local
+    app.kubernetes.io/version: "1.0.3"
+spec:
+  type: NodePort
+  ports:
+    - port: 5000
+      protocol: TCP
+      targetPort: 5000
+      name: default-ui-port
+  selector:
+    app.kubernetes.io/name: orkes-conductor-community
+    app.kubernetes.io/instance: local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-orkes-conductor-community-api
+  labels:
+    app.kubernetes.io/name: orkes-conductor-community
+    app.kubernetes.io/instance: local
+    app.kubernetes.io/version: "1.0.3"
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      name: default-api-port
+  selector:
+    app.kubernetes.io/name: orkes-conductor-community
+    app.kubernetes.io/instance: local
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-orkes-conductor-community
+  labels:
+    app.kubernetes.io/name: orkes-conductor-community
+    app.kubernetes.io/instance: local
+    app.kubernetes.io/version: "1.0.3"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orkes-conductor-community
+      app.kubernetes.io/instance: local
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/name: orkes-conductor-community
+        app.kubernetes.io/instance: local
+    spec:
+      containers:
+        - env:
+            - name: cloud.env
+              value: gcp
+            - name: conductor.redis-lock.serverAddress
+              value: redis://redis:6379
+            - name: SPRING_PROFILES_ACTIVE
+              value: logrotate
+            - name: spring.datasource.password
+              value: "kn0wledge"
+            - name: spring.datasource.username
+              value: "admin"
+            - name: spring.datasource.url
+              value: "jdbc:postgresql://postgres:5432/postgresdb"
+            - name: DEPLOY_ENV
+              value: prod
+            - name: conductor.redis.hosts
+              value: redis:6379:us-east-1c
+          image: orkesio/orkes-conductor-community
+          imagePullPolicy: IfNotPresent
+          name: orkes-conductor-community
+          ports:
+            - name: liveness-port
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "3"
+              memory: "3Gi"
+            requests:
+              cpu: "2"
+              memory: "2Gi"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: liveness-port
+            failureThreshold: 30
+            periodSeconds: 10
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30

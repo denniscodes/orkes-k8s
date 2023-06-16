@@ -25,3 +25,17 @@ root@redis-78dc8f4899-nrkmb:/data# redis-cli
 127.0.0.1:6379> 
 ```
 
+## Orkes Conductor
+Self-contained in [orkes-app.yaml](k8s/orkes-app.yaml). Apply it and you are good to go.
+
+```shell
+$ kubectl apply -f k8s/orkes-app.yaml
+```
+
+Find the UI service point
+```shell
+$ minikube service local-orkes-conductor-community-ui
+```
+
+Should open in your default browser, othwerwise, paste the URI given into your browser.
+Follow the same pattern for the local-orkes-conductor-community-api to get access to swagger ui.
